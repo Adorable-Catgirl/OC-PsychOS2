@@ -10,6 +10,8 @@ function fs.segments(path)
  return segments
 end
 function fs.resolve(path)
+ if not path or path == "." then path = os.getenv("PWD") end
+ if path:sub(1,1) ~= "/" then path=(os.getenv("PWD") or "").."/"..path end
  local segments, rpath = fs.segments(path), "/"
  for i = 2, #segments do
   rpath = rpath .. segments[i] .. "/"
