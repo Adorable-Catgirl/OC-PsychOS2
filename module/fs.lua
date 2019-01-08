@@ -2,14 +2,14 @@ fs = {}
 fs.mounts = {}
 
 -- basics
-function fs.segments(path)
+function fs.segments(path) -- splits *path* on each /
  local segments = {}
  for segment in path:gmatch("[^/]+") do
   segments[#segments+1] = segment
  end
  return segments
 end
-function fs.resolve(path)
+function fs.resolve(path) -- resolves *path* to a specific filesystem mount and path
  if not path or path == "." then path = os.getenv("PWD") end
  if path:sub(1,1) ~= "/" then path=(os.getenv("PWD") or "").."/"..path end
  local segments, rpath = fs.segments(path), "/"
@@ -46,7 +46,7 @@ local function fclose(self)
  fs.mounts[self.fs].close(self.fid)
 end
 
-function fs.open(path,mode)
+function fs.open(path,mode) -- opens file *path* with mode *mode*
  mode = mode or "rb"
  local fsi,path = fs.resolve(path)
  if not fs.mounts[fsi] then return false end
@@ -63,7 +63,7 @@ function fs.open(path,mode)
  return false
 end
 
-function fs.copy(from,to)
+function fs.copy(from,to) -- copies a file from *from* to *to*
  local of = fs.open(from,"rb")
  local df = fs.open(to,"wb")
  if not of or not df then
@@ -74,7 +74,7 @@ function fs.copy(from,to)
  of:close()
 end
 
-function fs.rename(from,to)
+function fs.rename(from,to) -- moves file *from* to *to*
  local ofsi, opath = fs.resolve(from)
  local dfsi, dpath = fs.resolve(to)
  if ofsi == dfsi then
