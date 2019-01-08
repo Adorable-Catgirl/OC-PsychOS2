@@ -26,7 +26,7 @@ local function fdc(f)
  fd[f.fd].close()
  fd[f.fd] = nil
 end
-local function newfd()
+function io.newfd() -- creates a new file descriptor and returns it plus its ID
  local nfd=#fd+1
  fd[nfd] = {}
  return nfd,fd[nfd]
@@ -34,10 +34,10 @@ end
 function io.open(f,m) -- opens file *f* with mode *m*
  local t={["close"]=fdc}
  if type(f) == "string" then
-  local e,fobj=fs.open(f,m)
+  local e,fobj=pcall(fs.open,f,m)
   if not e then return false, fobj end
   if fobj then
-   local fdi,nfd = newfd()
+   local fdi,nfd = io.newfd()
    f=fdi
    if fobj.write then
     function nfd.write(d)
