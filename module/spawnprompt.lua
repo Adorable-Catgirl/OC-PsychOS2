@@ -2,8 +2,9 @@ os.spawn(function()
 print(_OSVERSION,tostring(computer.totalMemory()/1024).."K memory")
 for k,v in pairs(fd) do
  if v.t == "t" then
-  tTasks[cPid].t = k
+  os.setenv("t") = k
   print("Spawning Lua prompt for "..tostring(k))
+  os.setenv("PWD","/boot")
   os.spawn(function() print(pcall(function() while true do
    io.write(_VERSION.."> ")
    tResult = {pcall(load(io.read()))}
