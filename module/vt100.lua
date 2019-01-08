@@ -1,4 +1,4 @@
-function vt100emu(gpu)
+function vt100emu(gpu) -- takes GPU component proxy *gpu* and returns a function to write to it in a manner like an ANSI terminal
  local mx, my = gpu.maxResolution()
  local cx, cy = 1, 1
  local pc = " "
