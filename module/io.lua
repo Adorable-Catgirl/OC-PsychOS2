@@ -1,28 +1,65 @@
-_G.fd,_G.io = {},{}
 do
-function io.write(d)
- fd[tTasks[cPid].t or 1].w(d)
+_G.fd,_G.io = {},{}
+function io.write(d) -- writes *d* to stdout
+ fd[os.getenv("t") or 1].write(d)
 end
-function io.read(d,b)
+function io.read(d,b) -- reads *d* from stdin, until something is returned, or the thing returned equals *b*
  local r = ""
  repeat
-  r=fd[tTasks[cPid].t or 1].r(d)
+  r=fd[os.getenv("t") or 1].read(d)
   coroutine.yield()
  until r or b
  return r
 end
-function print(...)
+function print(...) -- outputs its arguments to stdout, separated by newlines
  for k,v in pairs({...}) do
   io.write(tostring(v).."\n")
  end
 end
-
-local ts = {}
-for a,_ in component.list("screen") do
- ts[#ts+1] = a
+local function fdw(f,d)
+ fd[f.fd].write(d)
 end
-for a,_ in component.list("gpu") do
- local r,w = vtemu(a,table.remove(ts,1))
- fd[#fd+1] = {["r"]=r,["w"]=w,["t"]="t"}
+local function fdr(f,d)
+ return fd[f.fd].read(d)
+end
+local function fdc(f)
+ fd[f.fd].close()
+ fd[f.fd] = nil
+end
+local function newfd()
+ local nfd=#fd+1
+ fd[nfd] = {}
+ return nfd,fd[nfd]
+end
+function io.open(f,m) -- opens file *f* with mode *m*
+ local t={["close"]=fdc}
+ if type(f) == "string" then
+  local e,fobj=fs.open(f,m)
+  if not e then return false, fobj end
+  if fobj then
+   local fdi,nfd = newfd()
+   f=fdi
+   if fobj.write then
+    function nfd.write(d)
+     fobj:write(d)
+    end
+   elseif fobj.read then
+    function nfd.read(d)
+     return fobj:read(d)
+    end
+   end
+   function nfd.close()
+    fobj:close()
+   end
+  end
+ end
+ if fd[f].read then
+  t.read = fdr
+ end
+ if fd[f].write then
+  t.write = fdw
+ end
+ t.fd = f
+ return t
 end
 end
