@@ -7,11 +7,5 @@ for a,_ in component.list("gpu") do
  fd[#fd+1] = {["read"]=r,["write"]=w,["close"]=function() w("\27[2J\27[H") end,["t"]="t"}
 end
 if #fd < 1 then
- local fdi,nfd = io.newfd()
- function nfd.read()
- end
- function nfd.write()
- end
- function nfd.close()
- end
+ io.open("/boot/console.log","a")
 end
