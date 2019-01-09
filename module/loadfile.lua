@@ -8,7 +8,7 @@ function runfile(p,...) -- runs file *p* with arbitrary arguments in the current
  return loadfile(p)(...)
 end
 function spawnfile(p,n) -- spawns a new process from file *p* with name *n*
- return os.spawn(loadfile(p),n)
+ return os.spawn(function() print(pcall(loadfile(p))) end,n)
 end
 function require(f) -- searches for a library with name *f* and returns what the library returns, if possible
  local lib = os.getenv("LIB") or "/boot/lib"
