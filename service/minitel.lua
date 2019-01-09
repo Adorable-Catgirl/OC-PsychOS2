@@ -10,8 +10,8 @@ sender: original sender of packet
 data: the actual packet data, duh.
 ]]--
 
-local listeners = {}
-local modems = {}
+local listeners,timers,processes,modems = {},{},{},{}
+local hostname = os.getenv("HOSTNAME")
 
 local cfg = {}
 cfg.debug = false
@@ -20,7 +20,21 @@ cfg.retry = 10
 cfg.retrycount = 64
 cfg.route = true
 
-local hostname = computer.address():sub(1,8)
+local event, component, computer, serial = event, component, computer, serial
+local hnpath, cfgpath = "", ""
+
+OPENOS, PSYCHOS, KITTENOS = false, false, false
+if _OSVERSION:sub(1,6) == "OpenOS" then
+ OPENOS = true
+ hnpath = "/etc/hostname"
+ cfgpath = "/etc/minitel.cfg"
+elseif _OSVERSION:sub(1,7) == "PsychOS" then
+ PSYCHOS = true
+ hnpath = "/boot/cfg/hostname"
+ cfgpath = "/boot/cfg/minitel.cfg"
+elseif _OSVERSION:sub(1,8) == "KittenOS" then
+ KITTENOS = true
+end
 
 -- packet cache: [packet ID]=uptime
 local pcache = {}
@@ -52,37 +66,27 @@ packet queue format:
 ]]--
 local pqueue = {}
 
-local function loadconfig()
-end
 local function saveconfig()
-end
-
--- specific OS support here
-if _OSVERSION:sub(1,6) == "OpenOS" then -- OpenOS specific code
- local timers = {}
-
- local event = require "event"
- local component = require "component"
- local computer = require "computer"
- local serial = require "serialization"
- local listener = false
-
- local function saveconfig()
-  local f = io.open("/etc/minitel.cfg","wb")
+ if OPENOS or PSYCHOS then
+  local f = io.open(cfgpath,"wb")
   if f then
    f:write(serial.serialize(cfg))
    f:close()
   end
  end
- local function loadconfig()
-  local f=io.open("/etc/hostname","rb")
+end
+local function loadconfig()
+ hostname = os.getenv("HOSTNAME") or computer.address():sub(1,8)
+ if OPENOS or PSYCHOS then
+  print("Opening hostname file.",hnpath)
+  local f,g=io.open(hnpath,"rb")
   if f then
-   hostname = f:read()
+   hostname = f:read("*a"):match("(.-)\n")
    f:close()
   end
-  local f = io.open("/etc/minitel.cfg","rb")
+  local f = io.open(cfgpath,"rb")
   if f then
-   local newcfg = serial.unserialize(f:read("*a"))
+   local newcfg = serial.unserialize(f:read("*a")) or {}
    f:close()
    for k,v in pairs(newcfg) do
     cfg[k] = v
@@ -90,39 +94,31 @@ if _OSVERSION:sub(1,6) == "OpenOS" then -- OpenOS specific code
   else
    saveconfig()
   end
- end
- function stop()
-  for k,v in pairs(listeners) do
-   event.ignore(k,v)
-   print("Stopped listener: "..tostring(v))
-  end
-  for k,v in pairs(timers) do
-   event.cancel(v)
-   print("Stopped timer: "..tostring(v))
+ elseif KITTENOS then
+  local globals = neo.requestAccess("x.neo.pub.globals") -- KittenOS standard hostname stuff
+  if globals then
+   hostname = globals.getSetting("hostname") or hostname
+   globals.setSetting("hostname",hostname)
   end
  end
- 
- function set(k,v)
-  if type(cfg[k]) == "string" then
-   cfg[k] = v
-  elseif type(cfg[k]) == "number" then
-   cfg[k] = tonumber(v)
-  elseif type(cfg[k]) == "boolean" then
-   if v:lower():sub(1,1) == "t" then
-    cfg[k] = true
-   else
-    cfg[k] = false
-   end
+end
+
+-- specific OS support here
+if PSYCHOS then -- PsychOS specific code
+ serial = require "serialization"
+elseif OPENOS then -- OpenOS specific code
+ event = require "event"
+ component = require "component"
+ computer = require "computer"
+ serial = require "serialization"
+ listener = false
+elseif KITTENOS then
+ neo.requireAccess("s.h.modem_message","pulling packets")
+ computer = {["uptime"]=os.uptime,["address"]=os.address} -- wrap computer so the OpenOS code more or less works
+ function computer.pushSignal(...)
+  for k,v in pairs(processes) do
+   v(...)
   end
-  print("cfg."..k.." = "..tostring(cfg[k]))
-  saveconfig()
- end
- 
- function set_route(to,laddr,raddr)
-  cfg.sroutes[to] = {laddr,raddr,0}
- end
- function del_route(to)
-  cfg.sroutes[to] = nil
  end
 end
 
@@ -132,21 +128,34 @@ local function dprint(...)
  end
 end
 
-
 function start()
  loadconfig()
  print("Hostname: "..hostname)
  if listener then return end
- modems={}
- for a,t in component.list("modem") do
-  modems[#modems+1] = component.proxy(a)
- end
- for k,v in ipairs(modems) do
-  v.open(cfg.port)
-  print("Opened port "..cfg.port.." on "..v.address:sub(1,8))
- end
- for a,t in component.list("tunnel") do
-  modems[#modems+1] = component.proxy(a)
+ if OPENOS or PSYCHOS then
+  for a,t in component.list("modem") do
+   modems[#modems+1] = component.proxy(a)
+  end
+  for k,v in ipairs(modems) do
+   v.open(cfg.port)
+   print("Opened port "..cfg.port.." on "..v.address:sub(1,8))
+  end
+  for a,t in component.list("tunnel") do
+   modems[#modems+1] = component.proxy(a)
+  end
+ elseif KITTENOS then
+  for p in neo.requireAccess("c.modem","networking").list() do -- fun stuff for KittenOS
+   dprint(p.address)
+   modems[p.address] = p
+  end
+  for k,v in pairs(modems) do
+   v.open(port)
+   print("Opened port "..port.." on "..v.address)
+  end
+  for p in neo.requireAccess("c.tunnel","networking").list() do
+   dprint(p.address)
+   modems[p.address] = p
+  end
  end
  
  local function genPacketID()
@@ -263,22 +272,21 @@ function start()
 
  listeners["modem_message"]=processPacket
  listeners["net_send"]=queuePacket
- if _OSVERSION:sub(1,6) == "OpenOS" then
+ if OPENOS then
   event.listen("modem_message",processPacket)
   print("Started packet listening daemon: "..tostring(processPacket))
   event.listen("net_send",queuePacket)
   print("Started packet queueing daemon: "..tostring(queuePacket))
   timers[#timers+1]=event.timer(0,packetPusher,math.huge)
   print("Started packet pusher: "..tostring(timers[#timers]))
- end
- if _OSVERSION:sub(1,8) == "KittenOS" then
- neo.requireAccess("r.svc.minitel","minitel daemon")(function(pkg,pid,sendSig)
+ elseif KITTENOS then
+  neo.requireAccess("r.svc.minitel","minitel daemon")(function(pkg,pid,sendSig)
   processes[pid] = sendSig
   return {["sendPacket"]=queuePacket}
  end)
  end
  
- if _OSVERSION:sub(1,8) == "KittenOS" or _OSVERSION:sub(1,7) == "PsychOS" then
+ if KITTENOS or PSYCHOS then
   while true do
    local ev = {coroutine.yield()}
    packetPusher()
@@ -293,6 +301,40 @@ function start()
  end
 end
 
-if _OSVERSION:sub(1,6) ~= "OpenOS" then
+function stop()
+ for k,v in pairs(listeners) do
+  event.ignore(k,v)
+  print("Stopped listener: "..tostring(v))
+ end
+ for k,v in pairs(timers) do
+  event.cancel(v)
+  print("Stopped timer: "..tostring(v))
+ end
+end
+
+function set(k,v)
+ if type(cfg[k]) == "string" then
+  cfg[k] = v
+ elseif type(cfg[k]) == "number" then
+  cfg[k] = tonumber(v)
+ elseif type(cfg[k]) == "boolean" then
+  if v:lower():sub(1,1) == "t" then
+   cfg[k] = true
+  else
+   cfg[k] = false
+  end
+ end
+ print("cfg."..k.." = "..tostring(cfg[k]))
+ saveconfig()
+end
+
+function set_route(to,laddr,raddr)
+ cfg.sroutes[to] = {laddr,raddr,0}
+end
+function del_route(to)
+ cfg.sroutes[to] = nil
+end
+
+if not OPENOS then
  start()
 end
