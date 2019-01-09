@@ -12,9 +12,11 @@ function vtemu(gpua,scra)
    local ty,ka,ch = coroutine.yield()
    if ty == "key_down" and kba[ka] then
     if ch == 13 then ch = 10 end
-    if ch == 8 and buf:len() > 0 then
-     write("\8 \8")
-     buf = buf:sub(1,-2)
+    if ch == 8 then
+     if buf:len() > 0 then
+      write("\8 \8")
+      buf = buf:sub(1,-2)
+     end
     elseif ch > 0 then
      write(string.char(ch))
      buf = buf .. string.char(ch)
