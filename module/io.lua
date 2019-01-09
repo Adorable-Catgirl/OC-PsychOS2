@@ -63,12 +63,3 @@ function io.open(f,m) -- opens file *f* with mode *m*
  return t
 end
 end
-do
- local fdi,nfd = io.newfd()
- function nfd.read()
- end
- function nfd.write()
- end
- function nfd.close()
- end
-end
