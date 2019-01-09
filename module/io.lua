@@ -31,35 +31,34 @@ function io.newfd() -- creates a new file descriptor and returns it plus its ID
  fd[nfd] = {}
  return nfd,fd[nfd]
 end
-function io.open(f,m) -- opens file *f* with mode *m*
- local t={["close"]=fdc}
- if type(f) == "string" then
-  local e,fobj=pcall(fs.open,f,m)
-  if not e then return false, fobj end
-  if fobj then
-   local fdi,nfd = io.newfd()
-   f=fdi
-   if fobj.write then
-    function nfd.write(d)
-     fobj:write(d)
-    end
-   elseif fobj.read then
-    function nfd.read(d)
-     return fobj:read(d)
-    end
+local function fdfile(f,m) -- create a fd from a file
+ local e,fobj = pcall(fs.open,f,m)
+ if e and fobj then
+  local fdi, fdo =io.newfd()
+  if fobj.read then
+   function fdo.read(d)
+    return fobj:read(d)
    end
-   function nfd.close()
-    fobj:close()
+  elseif fobj.write then
+   function fdo.write(d)
+    return fobj:write(d)
    end
   end
+  function fdo.close()
+   fobj:close()
+  end
+  return fdi
  end
- if fd[f].read then
-  t.read = fdr
+ return false
+end
+function io.open(f,m) -- opens file or file descriptor *f* with mode *m*
+ if type(f) == "string" then
+  f = fdfile(f,m)
  end
- if fd[f].write then
-  t.write = fdw
+ if fd[f] then
+  local t = {["close"]=fdc,["read"]=fdr,["write"]=fdw,["fd"]=f,["mode"]=m}
+  return t
  end
- t.fd = f
- return t
+ return false
 end
 end
