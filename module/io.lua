@@ -3,7 +3,7 @@ _G.fd,_G.io = {},{}
 function io.write(d) -- writes *d* to stdout
  fd[os.getenv("t") or 1].write(d)
 end
-function io.read(d,b) -- reads *d* from stdin, until something is returned, or the thing returned equals *b*
+function io.read(d,b) -- reads *d* from stdin, until something is returned, or b is true
  local r = ""
  repeat
   r=fd[os.getenv("t") or 1].read(d)
@@ -62,4 +62,13 @@ function io.open(f,m) -- opens file *f* with mode *m*
  t.fd = f
  return t
 end
+end
+do
+ local fdi,nfd = io.newfd()
+ function nfd.read()
+ end
+ function nfd.write()
+ end
+ function nfd.close()
+ end
 end
