@@ -9,7 +9,7 @@ end
 
 -- Important: pretty formatting will allow presenting non-serializable values
 -- but may generate output that cannot be unserialized back.
-function serialization.serialize(value, pretty)
+function serialization.serialize(value, pretty) -- serialize *value* into a string, optionally in a nicely formatted manner when *pretty* is set
   local kw =  {["and"]=true, ["break"]=true, ["do"]=true, ["else"]=true,
                ["elseif"]=true, ["end"]=true, ["false"]=true, ["for"]=true,
                ["function"]=true, ["goto"]=true, ["if"]=true, ["in"]=true,
@@ -130,7 +130,7 @@ function serialization.serialize(value, pretty)
   return result
 end
 
-function serialization.unserialize(data)
+function serialization.unserialize(data) -- returns the data contained in serialized string *data*
   local result, reason = load("return " .. data, "=data", nil, {math={huge=math.huge}})
   if not result then
     return nil, reason

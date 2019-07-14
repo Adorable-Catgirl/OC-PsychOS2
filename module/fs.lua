@@ -32,12 +32,15 @@ local function fread(self,length)
  if length == "*a" then
   length = math.huge
  end
- local rstr, lstr = "", ""
- repeat
-  lstr = fs.mounts[self.fs].read(self.fid,math.min(2^16,length-rstr:len())) or ""
-  rstr = rstr .. lstr
- until rstr:len() == length or lstr == ""
- return rstr
+ if type(length) == "number" then
+  local rstr, lstr = "", ""
+  repeat
+   lstr = fs.mounts[self.fs].read(self.fid,math.min(2^16,length-rstr:len())) or ""
+   rstr = rstr .. lstr
+  until rstr:len() == length or lstr == ""
+  return rstr
+ end
+ return fs.mounts[self.fs].read(self.fid,length)
 end
 local function fwrite(self,data)
  fs.mounts[self.fs].write(self.fid,data)
@@ -53,9 +56,10 @@ function fs.open(path,mode) -- opens file *path* with mode *mode*
  local fid = fs.mounts[fsi].open(path,mode)
  if fid then
   local fobj = {["fs"]=fsi,["fid"]=fid,["close"]=fclose}
-  if mode:sub(1,1) == "r" then
+  if mode:find("r") then
    fobj.read = fread
-  else
+  end
+  if mode:find("w") then
    fobj.write = fwrite
   end
   return fobj

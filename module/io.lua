@@ -39,7 +39,8 @@ local function fdfile(f,m) -- create a fd from a file
    function fdo.read(d)
     return fobj:read(d)
    end
-  elseif fobj.write then
+  end
+  if fobj.write then
    function fdo.write(d)
     return fobj:write(d)
    end

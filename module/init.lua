@@ -14,7 +14,7 @@ for k,v in pairs(fd) do
  if v.t == "t" then
   os.setenv("t",k)
   print("Spawning a shell for terminal #"..tostring(k))
-  spawnfile("/boot/exec/shell.lua","shell #"..tostring(k))
+  spawnfile("/boot/exec/shell.lua","shell [local:"..tostring(k).."]")
  end
 end
 end)) end,"init")

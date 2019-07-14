@@ -1,5 +1,5 @@
 do
-tTasks,nPid,nTimeout,cPid = {},1,1,0 -- table of tasks, next process ID, event timeout, current PID
+tTasks,nPid,nTimeout,cPid = {},1,0,0 -- table of tasks, next process ID, event timeout, current PID
 function os.spawn(f,n) -- creates a process from function *f* with name *n*
  tTasks[nPid] = {["c"]=coroutine.create(f),["n"]=n,["p"]=nPid,e={}}
  if tTasks[cPid] then

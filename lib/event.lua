@@ -1,5 +1,5 @@
 local event = {}
-function event.pull(t,...)
+function event.pull(t,...) -- return an event, optionally with timeout *t* and filter *...*.
  local tA = {...}
  if type(t) == "string" then
   table.insert(tA,1,t)
@@ -22,7 +22,7 @@ function event.pull(t,...)
  return nil
 end
 
-function event.listen(e,f)
+function event.listen(e,f) -- run function *f* for every occurance of event *e*
  local op = os.getenv("parent")
  os.setenv("parent",cPid)
  os.spawn(function() while true do
@@ -35,7 +35,7 @@ function event.listen(e,f)
  os.setenv("parent",op)
 end
 
-function event.ignore(e,f)
+function event.ignore(e,f) -- stop function *f* running for every occurance of event *e*
  computer.pushSignal("unlisten",e,tostring(f))
 end
 

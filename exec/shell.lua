@@ -1,3 +1,4 @@
+print(pcall(function()
 local shenv = {}
 function shenv.quit()
  os.setenv("run",nil)
@@ -13,3 +14,4 @@ while os.getenv("run") do
   print(v)
  end
 end
+end))

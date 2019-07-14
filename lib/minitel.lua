@@ -12,7 +12,7 @@ net.minport = 32768
 net.maxport = 65535
 net.openports = {}
 
-function net.genPacketID()
+function net.genPacketID() -- generate a random 16-character string, for use in packet IDs
  local npID = ""
  for i = 1, 16 do
   npID = npID .. string.char(math.random(32,126))
@@ -20,11 +20,11 @@ function net.genPacketID()
  return npID
 end
 
-function net.usend(to,port,data,npID)
+function net.usend(to,port,data,npID) -- send an unreliable packet to host *to* on port *port* with data *data*, optionally with the packet ID *npID*
  computer.pushSignal("net_send",0,to,port,data,npID)
 end
 
-function net.rsend(to,port,data,block)
+function net.rsend(to,port,data,block) -- send a reliable packet to host *to* on port *port* with data *data*, with *block* set to true to disable blocking
  local pid, stime = net.genPacketID(), computer.uptime() + net.streamdelay
  computer.pushSignal("net_send",1,to,port,data,pid)
  if block then return false end
@@ -37,7 +37,7 @@ end
 
 -- ordered packet delivery, layer 4?
 
-function net.send(to,port,ldata)
+function net.send(to,port,ldata) -- send arbitrary data *ldata* reliably to host *to* on port *port*
  local tdata = {}
  if ldata:len() > net.mtu then
   for i = 1, ldata:len(), net.mtu do
@@ -112,7 +112,7 @@ local function socket(addr,port,sclose)
  return conn
 end
 
-function net.open(to,port)
+function net.open(to,port) -- open a socket to host *to* on port *port*
  if not net.rsend(to,port,"openstream") then return false, "no ack from host" end
  local st = computer.uptime()+net.streamdelay
  local est = false
@@ -139,7 +139,7 @@ function net.open(to,port)
  return socket(to,data,sclose)
 end
 
-function net.listen(port)
+function net.listen(port) -- listen for connections on port *port* in a blocking manner
  repeat
   _, from, rport, data = event.pull("net_msg")
  until rport == port and data == "openstream"
@@ -150,7 +150,7 @@ function net.listen(port)
  return socket(from,nport,sclose)
 end
 
-function net.flisten(port,listener)
+function net.flisten(port,listener) -- run function *listener* on a connection to *port*
  local function helper(_,from,rport,data)
   if rport == port and data == "openstream" then
    local nport = math.random(net.minport,net.maxport)
