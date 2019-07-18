@@ -29,8 +29,19 @@ for k,v in pairs({"makeDirectory","exists","isDirectory","list","lastModified","
 end
 
 local function fread(self,length)
+ length = length or "*l"
  if length == "*a" then
   length = math.huge
+ elseif length == "*l" then
+  local rstr, lstr = "", ""
+  while true do
+   lstr = fs.mounts[self.fs].read(self.fid,1)
+   if lstr == "\n" or not lstr then
+    break
+   end
+   rstr = rstr .. lstr
+  end
+  return rstr
  end
  if type(length) == "number" then
   local rstr, lstr = "", ""
@@ -45,6 +56,9 @@ end
 local function fwrite(self,data)
  fs.mounts[self.fs].write(self.fid,data)
 end
+local function fseek(self,dist)
+ fs.mounts[self.fs].seek(self.fid,dist)
+end
 local function fclose(self)
  fs.mounts[self.fs].close(self.fid)
 end
@@ -55,7 +69,7 @@ function fs.open(path,mode) -- opens file *path* with mode *mode*
  if not fs.mounts[fsi] then return false end
  local fid = fs.mounts[fsi].open(path,mode)
  if fid then
-  local fobj = {["fs"]=fsi,["fid"]=fid,["close"]=fclose}
+  local fobj = {["fs"]=fsi,["fid"]=fid,["seek"]=fseek,["close"]=fclose}
   if mode:find("r") then
    fobj.read = fread
   end
