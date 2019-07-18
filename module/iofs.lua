@@ -57,7 +57,7 @@ function iofs.component.seek(fd,...)
  end
 end
 
-function iofs.register(fname,fopen) -- Register a new iofs node with the name *fname* that will run the function *fopen* when opened. This function should return a function for read, a function for write, and a function for close, in that order.
+function iofs.register(fname,fopen) -- Register a new iofs node with the name *fname* that will run the function *fopen* when opened. This function should return a function for read, a function for write, function for close, and optionally, a function for seek, in that order.
  iofs.files[fname] = fopen
 end
 
