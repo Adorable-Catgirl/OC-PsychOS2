@@ -29,19 +29,8 @@ for k,v in pairs({"makeDirectory","exists","isDirectory","list","lastModified","
 end
 
 local function fread(self,length)
- length = length or "*l"
  if length == "*a" then
   length = math.huge
- elseif length == "*l" then
-  local rstr, lstr = "", ""
-  while true do
-   lstr = fs.mounts[self.fs].read(self.fid,1)
-   if lstr == "\n" or not lstr then
-    break
-   end
-   rstr = rstr .. lstr
-  end
-  return rstr
  end
  if type(length) == "number" then
   local rstr, lstr = "", ""
