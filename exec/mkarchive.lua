@@ -1,7 +1,7 @@
 local tArgs = {...}
-local output = tArgs[2]
+local output = table.remove(tArgs,#tArgs)
 local of = io.open(output,"wb")
-local files, dirs = {}, {tArgs[1]}
+local files, dirs = {}, {tArgs[1] or "."}
 
 local function cint(n,l)
  local t={}
