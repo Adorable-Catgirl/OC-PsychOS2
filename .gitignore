@@ -2,5 +2,5 @@
 apidoc.md
 apidoc.html
 psychos/
-psychos.cpio
-psychos-tarbomb.cpio
+*.cpio
+*.af
