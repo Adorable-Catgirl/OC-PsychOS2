@@ -78,7 +78,6 @@ end
 local function loadconfig()
  hostname = os.getenv("HOSTNAME") or computer.address():sub(1,8)
  if OPENOS or PSYCHOS then
-  print("Opening hostname file.",hnpath)
   local f,g=io.open(hnpath,"rb")
   if f then
    hostname = f:read("*a"):match("(.-)\n")
@@ -166,7 +165,7 @@ function start()
   return npID
  end
  
- local function sendPacket(packetID,packetType,dest,sender,vPort,data)
+ local function sendPacket(packetID,packetType,dest,sender,vPort,data,repeatingFrom)
   if rcache[dest] then
    dprint("Cached", rcache[dest][1],"send",rcache[dest][2],cfg.port,packetID,packetType,dest,sender,vPort,data)
    if component.type(rcache[dest][1]) == "modem" then
@@ -176,11 +175,13 @@ function start()
    end
   else
    dprint("Not cached", cfg.port,packetID,packetType,dest,sender,vPort,data)
-   for k,v in pairs(modems) do
-    if v.type == "modem" then
-     v.broadcast(cfg.port,packetID,packetType,dest,sender,vPort,data)
-    elseif v.type == "tunnel" then
-     v.send(packetID,packetType,dest,sender,vPort,data)
+   if v.address ~= repeatingFrom or (v.type ~= "tunnel" and v.isWireless()) then
+    for k,v in pairs(modems) do
+     if v.type == "modem" then
+      v.broadcast(cfg.port,packetID,packetType,dest,sender,vPort,data)
+     elseif v.type == "tunnel" then
+      v.send(packetID,packetType,dest,sender,vPort,data)
+     end
     end
    end
   end
@@ -231,7 +232,7 @@ function start()
    elseif dest:sub(1,1) == "~" then -- broadcasts start with ~
     computer.pushSignal("net_broadcast",sender,vPort,data)
    elseif cfg.route then -- repeat packets if route is enabled
-    sendPacket(packetID,packetType,dest,sender,vPort,data)
+    sendPacket(packetID,packetType,dest,sender,vPort,data,localModem)
    end
    if not rcache[sender] then -- add the sender to the rcache
     dprint("rcache: "..sender..":", localModem,from,computer.uptime())
