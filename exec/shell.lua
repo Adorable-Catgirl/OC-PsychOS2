@@ -3,7 +3,19 @@ local shenv = {}
 function shenv.quit()
  os.setenv("run",nil)
 end
-setmetatable(shenv,{__index=function(_,k) if _G[k] then return _G[k] elseif fs.exists("/boot/exec/"..k..".lua") then return loadfile("/boot/exec/"..k..".lua") end end})
+setmetatable(shenv,{__index=function(_,k)
+ if _G[k] then
+  return _G[k]
+ elseif fs.exists("/boot/exec/"..k..".lua") then
+  return function(...)
+   local tA = {...}
+   local pid = os.spawn(function() loadfile("/boot/exec/"..k..".lua")(table.unpack(tA)) end,"/boot/exec/"..k..".lua")
+   repeat
+    coroutine.yield()
+   until tTasks[pid] == nil
+  end
+ end
+end})
 print(_VERSION)
 os.setenv("run",true)
 while os.getenv("run") do
