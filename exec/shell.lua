@@ -35,6 +35,9 @@ setmetatable(shenv,{__index=function(_,k)
     tE = {coroutine.yield()}
     if tE[1] == rqid then
      table.remove(tE,1)
+     if tE[1] == true then
+      table.remove(tE,1)
+     end
      return table.unpack(tE)
     end
    until tTasks[pid] == nil
