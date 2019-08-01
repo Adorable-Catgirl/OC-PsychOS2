@@ -18,7 +18,7 @@ local function findNextDisplay() -- finds the next available screen, or nil if t
  return nil
 end
 
-for file in ipairs(fs.list("/boot/cfg/disp/")) do -- allows files in /boot/cfg/disp with filenames as GPU addresses to bind to specific screens
+for file in ipairs(fs.list("/boot/cfg/disp/") or {}) do -- allows files in /boot/cfg/disp with filenames as GPU addresses to bind to specific screens
  if component.proxy(file) then
   local f = io.open("/boot/cfg/disp/"..file)
   if f then
@@ -36,7 +36,6 @@ for a,_ in component.list("gpu") do -- allocate a screen to every unused GPU
 end
 
 for gpu,screen in pairs(tG) do
- dprint(gpu,screen)
  local r,w = vtemu(gpu,screen)
  iofs.register("tty"..tostring(ttyn),function() return r,w,function() w("\27[2J\27[H") end end)
  local f = io.open("/iofs/tty"..tostring(ttyn),"rw")
