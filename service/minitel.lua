@@ -175,15 +175,15 @@ function start()
    end
   else
    dprint("Not cached", cfg.port,packetID,packetType,dest,sender,vPort,data)
-   if v.address ~= repeatingFrom or (v.type ~= "tunnel" and v.isWireless()) then
-    for k,v in pairs(modems) do
+   for k,v in pairs(modems) do
+    if v.address ~= repeatingFrom or (v.type ~= "tunnel" and v.isWireless()) then
      if v.type == "modem" then
       v.broadcast(cfg.port,packetID,packetType,dest,sender,vPort,data)
      elseif v.type == "tunnel" then
       v.send(packetID,packetType,dest,sender,vPort,data)
      end
     end
-   end
+    end
   end
  end
  
