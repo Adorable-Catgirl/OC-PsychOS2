@@ -48,11 +48,28 @@ local function fileHandler(socket,rtype,path)
  else
   socket:write("fUnknown request type")
  end
- socket:close()
 end
 local function httpHandler(socket,rtype,path)
- socket:write("fHTTP requests are not yet implemented.")
- socket:close()
+ local tPath = fs.segments(path)
+ local proto = table.remove(tPath,1)
+ local url = string.format("%s://%s",proto,table.concat(tPath,"/"))
+ local request = component.invoke(component.list("internet")(),"request",url)
+ repeat
+  coroutine.yield()
+ until request.finishConnect()
+ local code, message, headers = request.response()
+ if code < 200 or code > 299 then
+  socket:write(string.format("f%d\n%s",code,message))
+ else
+  local data = ""
+  repeat
+   coroutine.yield()
+   data = request.read()
+   if data then
+    socket:write(data)
+   end
+  until not data
+ end
 end
 
 local function socketHandler(socket)
@@ -63,7 +80,7 @@ local function socketHandler(socket)
    line = socket:read()
   until line
   local rtype, path = line:match("(.)(.+)")
-  if path:sub(1,6) == "/http/" or path:sub(1,5) == "http/" then
+  if fs.segments(path)[1] == "http" or fs.segments(path)[1] == "https" then
    httpHandler(socket,rtype,path)
   else
    path = (cfg.path .. "/" .. path:gsub("../","")):gsub("/+","/")
@@ -74,5 +91,5 @@ local function socketHandler(socket)
 end
 
 while true do
- os.spawn(socketHandler(minitel.listen(70)))
+ os.spawn(socketHandler(minitel.listen(70)),"fserv worker process")
 end
