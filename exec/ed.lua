@@ -65,18 +65,36 @@ function ct.append(np)
  p=p+1
  ct.insert()
 end
-function ct.substitute(np)
+function ct.delete(np,n)
  ct.sp(np)
- table.remove(ft,p)
- ct.insert(np)
+ _G.clip = ""
+ for i = 1, (n or 1) do
+  _G.clip = _G.clip .. table.remove(ft,p) .. "\n"
+ end
 end
-function ct.delete(np)
- ct.sp(np)
- table.remove(ft,p)
+function ct.substitute(np,n)
+ ct.delete(np,n)
+ ct.insert(np)
 end
 function ct.filename(np)
  if np then fp = np end
  print(fp)
+end
+
+local function rawpaste()
+ for line in string.gmatch(_G.clip,"[^\n]") do
+  print(string.format("%4d\t %s",p,line))
+  table.insert(ft,p,line)
+ end
+end
+function ct.pasteprevious(np)
+ ct.sp(np)
+ rawpaste()
+end
+function ct.paste(np)
+ ct.sp(np)
+ p = p + 1
+ rawpaste()
 end
 
 ct.o = ct.readfile
@@ -88,6 +106,8 @@ ct.a = ct.append
 ct.s = ct.substitute
 ct.d = ct.delete
 ct.f = ct.filename
+ct.p = ct.pasteprevious
+ct.P = ct.paste
 
 ct.readfile(fp)
 
