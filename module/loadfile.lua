@@ -7,7 +7,7 @@ end
 function runfile(p,...) -- runs file *p* with arbitrary arguments in the current thread
  return loadfile(p)(...)
 end
-function spawnfile(p,n) -- spawns a new process from file *p* with name *n*
+function os.spawnfile(p,n) -- spawns a new process from file *p* with name *n*
  return os.spawn(function() print(pcall(loadfile(p))) end,n)
 end
 function require(f) -- searches for a library with name *f* and returns what the library returns, if possible

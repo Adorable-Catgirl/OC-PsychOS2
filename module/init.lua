@@ -1,3 +1,7 @@
+--#include "module/sched.lua"
+--#include "module/buffer.lua"
+--#include "module/fs.lua"
+--#include "module/loadfile.lua"
 os.spawn(function() print(pcall(function()
 print(_OSVERSION,tostring(math.floor(computer.totalMemory()/1024)).."K memory")
 os.setenv("PWD","/boot")
