@@ -1,0 +1,8 @@
+xpcall(function()
+io.input("/dev/tty0")
+io.output("/dev/tty0") 
+os.setenv("PWD","/boot")
+io.write("PsychOS v2.0a1 - ")
+print(tostring(math.floor(computer.totalMemory()/1024)).."K RAM")
+os.spawnfile("/boot/exec/shell.lua")
+end,function(e) dprint(e) end,"init test")

@@ -1,7 +1,13 @@
 do
-tTasks,nPid,nTimeout,cPid = {},1,0,0 -- table of tasks, next process ID, event timeout, current PID
+local tTasks,nPid,nTimeout,cPid = {},1,0,0 -- table of tasks, next process ID, event timeout, current PID
 function os.spawn(f,n) -- creates a process from function *f* with name *n*
- tTasks[nPid] = {["c"]=coroutine.create(f),["n"]=n,["p"]=nPid,e={}}
+ tTasks[nPid] = {
+  c=coroutine.create(f), -- actual coroutine
+  n=n, -- process name
+  p=nPid, -- process PID
+  P=cPid, -- parent PID
+  e={} -- environment variables
+ }
  if tTasks[cPid] then
   for k,v in pairs(tTasks[cPid].e) do
    tTasks[nPid].e[k] = tTasks[nPid].e[k] or v
@@ -13,7 +19,21 @@ end
 function os.kill(pid) -- removes process *pid* from the task list
  tTasks[pid] = nil
 end
-function sched() -- the actual scheduler function
+function os.pid()
+ return cPid
+end
+function os.tasks()
+ local rt = {}
+ for k,v in pairs(tTasks) do
+  rt[#rt+1] = k
+ end
+ return rt
+end
+function os.taskInfo(pid)
+ return {name=tTasks[pid].n,parent=tTasks[pid].P}
+end
+function os.sched() -- the actual scheduler function
+ os.sched = nil
  while #tTasks > 0 do
   local tEv = {computer.pullSignal(nTimeout)}
   for k,v in pairs(tTasks) do

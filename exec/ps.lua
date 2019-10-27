@@ -1,4 +1,5 @@
-print("PID# VTY# Name")
-for k,v in pairs(tTasks) do
- print(string.format("%4d %4d %s",k,v.e.t or 0,v.n))
+print("PID# Parent Name")
+for k,v in pairs(os.tasks()) do
+ local t = os.taskInfo(v)
+ print(string.format("%4d %4d %s",k,v.parent,v.name))
 end

@@ -58,9 +58,9 @@ function vt100emu(gpu) -- takes GPU component proxy *gpu* and returns a function
      cx, cy = sx, sy
      mode = "n"
     elseif cc == "H" then -- cursor home or to
-     local tx, ty = cs:match("(.);(.)")
-     tx, ty = tx or "\1", ty or "\1"
-     cx, cy = string.byte(tx), string.byte(ty)
+     local tx, ty = cs:match("(.-);(.-)")
+     tx, ty = tx or "1", ty or "1"
+     cx, cy = tonumber(tx), tonumber(ty)
      mode = "n"
     elseif cc == "A" then -- cursor up
      cy = cy - string.byte(n)
