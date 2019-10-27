@@ -1,4 +1,4 @@
-local buffer = {}
+buffer = {}
 local metatable = {
  __index = buffer,
  __metatable = "file",
