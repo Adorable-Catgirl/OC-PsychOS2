@@ -26,6 +26,7 @@ setmetatable(shenv,{__index=function(_,k)
  if _G[k] then
   return _G[k]
  elseif fs.exists("/boot/exec/"..k..".lua") then
+  --[[
   local rqid = string.format("shell-%d",math.random(1,99999))
   return function(...)
    local tA = {...}
@@ -42,6 +43,8 @@ setmetatable(shenv,{__index=function(_,k)
     end
    until tTasks[pid] == nil
   end
+  ]]--
+  return loadfile("/boot/exec/"..k..".lua")
  end
 end})
 print(_VERSION)
