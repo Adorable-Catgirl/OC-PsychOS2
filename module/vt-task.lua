@@ -27,9 +27,12 @@ function vtemu(gpua,scra)
   end
  end)) end,string.format("ttyd[%s:%s]",gpua:sub(1,8),scra:sub(1,8)))
  local function bread()
+  while not buf:find("\n") do
+   coroutine.yield()
+  end
   local n = buf:find("\n")
-  if not n then return nil end
   r, buf = buf:sub(1,n), buf:sub(n+1)
+  dprint("bread",r)
   return r
  end
  return bread, write, function() io.write("\27[2J\27[H") end
