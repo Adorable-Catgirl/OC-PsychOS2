@@ -48,10 +48,8 @@ function vt100emu(gpu) -- takes GPU component proxy *gpu* and returns a function
      mode = "n"
     end
 
-   elseif mode == "v" then -- save cursor
-    local n = cs:sub(cs:len(),cs:len())
-    if n == "" then n = "\1" end
-    if cc == "s" then
+   elseif mode == "v" then
+    if cc == "s" then -- save cursor
      sx, sy = cx, cy
      mode = "n"
     elseif cc == "u" then -- restore cursor
@@ -63,16 +61,16 @@ function vt100emu(gpu) -- takes GPU component proxy *gpu* and returns a function
      cx, cy = tonumber(tx), tonumber(ty)
      mode = "n"
     elseif cc == "A" then -- cursor up
-     cy = cy - string.byte(n)
+     cy = cy - tonumber(cs) or 1
      mode = "n"
     elseif cc == "B" then -- cursor down
-     cy = cy + string.byte(n)
+     cy = cy + tonumber(cs) or 1
      mode = "n"
     elseif cc == "C" then -- cursor right
-     cx = cx + string.byte(n)
+     cx = cx + tonumber(cs) or 1
      mode = "n"
     elseif cc == "D" then -- cursor left
-     cx = cx - string.byte(n)
+     cx = cx - tonumber(cs) or 1
      mode = "n"
     elseif cc == "h" and lc == "7" then -- enable line wrap
      lw = true
