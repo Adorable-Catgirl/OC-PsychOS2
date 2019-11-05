@@ -1,6 +1,5 @@
-/build
 apidoc.md
 apidoc.html
-psychos/
 *.cpio
 *.af
+/target
