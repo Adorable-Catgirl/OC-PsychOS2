@@ -1,6 +1,7 @@
 --#include "module/chatbox-dprint.lua"
 --#include "module/syslog.lua"
 --#include "module/sched.lua"
+--#include "module/osutil.lua"
 --#include "module/fs.lua"
 --#include "module/newio.lua"
 --#include "module/devfs.lua"

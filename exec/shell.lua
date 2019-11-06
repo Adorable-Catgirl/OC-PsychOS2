@@ -3,25 +3,7 @@ local shenv = {}
 function shenv.quit()
  os.setenv("run",nil)
 end
-function shenv.cd(p)
- if p:sub(1,1) == "/" then
-  if fs.list(p) then
-   os.setenv("PWD",p)
-  else
-   print("no such directory: "..p)
-  end
- else
-  local np = {}
-  for k,v in pairs(fs.segments(os.getenv("PWD").."/"..p)) do
-   if v == ".." then
-    np[#np] = nil
-   else
-    np[#np+1] = v
-   end
-  end
-  os.setenv("PWD","/"..table.concat(np,"/"))
- end
-end
+shenv.cd = os.chdir
 setmetatable(shenv,{__index=function(_,k)
  if _G[k] then
   return _G[k]
