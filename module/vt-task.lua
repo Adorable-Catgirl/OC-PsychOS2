@@ -1,6 +1,6 @@
 do
 --#include "module/vt100.lua"
-function vtemu(gpua,scra)
+function vtemu(gpua,scra) -- creates a process to handle the GPU and screen address combination *gpua*/*scra*. Returns read, write and "close" functions.
  local gpu = component.proxy(gpua)
  gpu.bind(scra)
  local write = vt100emu(gpu)
