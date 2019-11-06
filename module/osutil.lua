@@ -10,7 +10,7 @@ function os.chdir(p) -- changes the current working directory of the calling pro
   end
   p = "/"..table.concat(np,"/")
  end
- if fs.exists(p) and fs.list(p) then
+ if fs.list(p) then
   os.setenv("PWD",p)
  else
   return false, "no such directory"
