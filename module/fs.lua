@@ -27,7 +27,7 @@ function fs.resolve(path) -- resolves *path* to a specific filesystem mount and 
 end
 
 -- generate some simple functions
-for k,v in pairs({"makeDirectory","exists","isDirectory","list","lastModified","remove","size","spaceUsed","isReadOnly","getLabel"}) do
+for k,v in pairs({"makeDirectory","exists","isDirectory","list","lastModified","remove","size","spaceUsed","spaceTotal","isReadOnly","getLabel"}) do
  fs[v] = function(path)
   local fsi,path = fs.resolve(path)
   return fsmounts[fsi][v](path)
@@ -105,6 +105,23 @@ function fs.mount(path,proxy)
   return true
  end
  return false, "path is not a directory"
+end
+
+function fs.mounts()
+ local rt = {}
+ for k,v in pairs(fsmounts) do
+  rt[#rt+1] = k,v.address or "unknown"
+ end
+ return rt
+end
+
+function fs.address(path)
+ local fsi,_ = fs.resolve(path)
+ return fsmounts[fsi].address
+end
+function fs.type(path)
+ local fsi,_ = fs.resolve(path)
+ return fsmounts[fsi].type
 end
 
 fsmounts["/"] = component.proxy(computer.tmpAddress())
