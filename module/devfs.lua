@@ -63,6 +63,7 @@ function devfs.register(fname,fopen) -- Register a new devfs node with the name 
  devfs.files[fname] = fopen
 end
 
-fs.mounts.dev = devfs.component
+fs.makeDirectory("/dev")
+fs.mount("/dev",devfs.component)
 
 --#include "module/devfs/null.lua"

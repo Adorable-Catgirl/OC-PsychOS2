@@ -1,5 +1,6 @@
+do
 fs = {}
-fs.mounts = {}
+local fsmounts = {}
 
 -- basics
 function fs.segments(path) -- splits *path* on each /
@@ -12,19 +13,24 @@ end
 function fs.resolve(path) -- resolves *path* to a specific filesystem mount and path
  if not path or path == "." then path = os.getenv("PWD") end
  if path:sub(1,1) ~= "/" then path=(os.getenv("PWD") or "").."/"..path end
- local segments, rpath = fs.segments(path), "/"
- for i = 2, #segments do
-  rpath = rpath .. segments[i] .. "/"
+ local segments, rpath, rfs= fs.segments(path)
+ local rc = #segments
+ dprint(rc)
+ for i = #segments, 1, -1 do
+  dprint("testing "..table.concat(segments, "/", 1, i),tostring(fsmounts[table.concat(segments, "/", 1, i)]))
+  if fsmounts[table.concat(segments, "/", 1, i)] ~= nil then
+   dprint("ret",table.concat(segments, "/", 1, i), table.concat(segments, "/", i+1))
+   return table.concat(segments, "/", 1, i), table.concat(segments, "/", i+1)
+  end
  end
- rpath = rpath:match("(.+)/") or rpath
- return segments[1] or "root",rpath
+ return "/", table.concat(segments,"/")
 end
 
 -- generate some simple functions
 for k,v in pairs({"makeDirectory","exists","isDirectory","list","lastModified","remove","size","spaceUsed","isReadOnly","getLabel"}) do
  fs[v] = function(path)
   local fsi,path = fs.resolve(path)
-  return fs.mounts[fsi][v](path)
+  return fsmounts[fsi][v](path)
  end
 end
 
@@ -35,28 +41,28 @@ local function fread(self,length)
  if type(length) == "number" then
   local rstr, lstr = "", ""
   repeat
-   lstr = fs.mounts[self.fs].read(self.fid,math.min(2^16,length-rstr:len())) or ""
+   lstr = fsmounts[self.fs].read(self.fid,math.min(2^16,length-rstr:len())) or ""
    rstr = rstr .. lstr
   until rstr:len() == length or lstr == ""
   return rstr
  end
- return fs.mounts[self.fs].read(self.fid,length)
+ return fsmounts[self.fs].read(self.fid,length)
 end
 local function fwrite(self,data)
- fs.mounts[self.fs].write(self.fid,data)
+ fsmounts[self.fs].write(self.fid,data)
 end
 local function fseek(self,dist)
- fs.mounts[self.fs].seek(self.fid,dist)
+ fsmounts[self.fs].seek(self.fid,dist)
 end
 local function fclose(self)
- fs.mounts[self.fs].close(self.fid)
+ fsmounts[self.fs].close(self.fid)
 end
 
 function fs.open(path,mode) -- opens file *path* with mode *mode*
  mode = mode or "rb"
  local fsi,path = fs.resolve(path)
- if not fs.mounts[fsi] then return false end
- local fid = fs.mounts[fsi].open(path,mode)
+ if not fsmounts[fsi] then return false end
+ local fid = fsmounts[fsi].open(path,mode)
  if fid then
   local fobj = {["fs"]=fsi,["fid"]=fid,["seek"]=fseek,["close"]=fclose}
   if mode:find("r") then
@@ -85,7 +91,7 @@ function fs.rename(from,to) -- moves file *from* to *to*
  local ofsi, opath = fs.resolve(from)
  local dfsi, dpath = fs.resolve(to)
  if ofsi == dfsi then
-  fs.mounts[ofsi].rename(opath,dpath)
+  fsmounts[ofsi].rename(opath,dpath)
   return true
  end
  fs.copy(from,to)
@@ -93,31 +99,23 @@ function fs.rename(from,to) -- moves file *from* to *to*
  return true
 end
 
+function fs.mount(path,proxy)
+ if fs.isDirectory(path) then
+  fsmounts[table.concat(fs.segments(path),"/")] = proxy
+  return true
+ end
+ return false, "path is not a directory"
+end
 
-fs.mounts.temp = component.proxy(computer.tmpAddress())
+fsmounts["/"] = component.proxy(computer.tmpAddress())
+fs.makeDirectory("temp")
 if computer.getBootAddress then
- fs.mounts.boot = component.proxy(computer.getBootAddress())
+ fs.makeDirectory("boot")
+ fs.mount("boot",component.proxy(computer.getBootAddress()))
 end
 for addr, _ in component.list("filesystem") do
- fs.mounts[addr:sub(1,3)] = component.proxy(addr)
+ fs.makeDirectory(addr:sub(1,3))
+ fs.mount(addr:sub(1,3),component.proxy(addr))
 end
 
-local function rf()
- return false
-end
-fs.mounts.root = {}
-
-for k,v in pairs(fs.mounts.temp) do
- fs.mounts.root[k] = rf
-end
-function fs.mounts.root.list()
- local t = {}
- for k,v in pairs(fs.mounts) do
-  t[#t+1] = k
- end
- t.n = #t
- return t
-end
-function fs.mounts.root.isReadOnly()
- return true
 end
