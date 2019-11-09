@@ -7,10 +7,13 @@ devfs.component = {}
 local function rfalse()
  return false
 end
+local function rzero()
+ return 0
+end
 function devfs.component.getLabel()
  return "devfs"
 end
-devfs.component.spaceUsed, devfs.component.spaceTotal, devfs.component.isReadOnly, devfs.component.isDirectory,devfs.component.size, devfs.component.setLabel = function() return computer.totalMemory()-computer.freeMemory() end, computer.totalMemory, rfalse, rfalse, rfalse, rfalse
+devfs.component.spaceUsed, devfs.component.spaceTotal, devfs.component.isReadOnly, devfs.component.isDirectory,devfs.component.size, devfs.component.setLabel = rzero, rzero, rfalse, rfalse, rzero, rfalse
 
 function devfs.component.exists(fname)
  return devfs.files[fname] ~= nil
