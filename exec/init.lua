@@ -1,16 +1,26 @@
-xpcall(function()
-os.setenv("PWD","/boot")
-os.spawnfile("/boot/service/getty.lua")
-coroutine.yield()
-for k,v in pairs(fs.list("/dev/")) do
- if v:sub(1,3) == "tty" then
-  dprint(tostring(io.input("/dev/"..v)))
-  dprint(tostring(io.output("/dev/"..v)))
-  print(_OSVERSION.." - "..tostring(math.floor(computer.totalMemory()/1024)).."K RAM")
-  os.spawnfile("/boot/exec/shell.lua")
- end
+if os.taskInfo(1) then
+ return false, "init already started"
 end
+os.setenv("PWD","/boot")
+io.input("/dev/null")
+io.output("/dev/syslog")
+local pids = {}
+local function loadlist()
+ local f = io.open("/boot/cfg/init.txt","rb")
+ if not f then return false end
+ for line in f:read("*a"):gmatch("[^\r\n]+") do
+  dprint(line)
+  pids[line] = -1
+ end
+ f:close()
+end
+loadlist()
 while true do
+ for k,v in pairs(pids) do
+  if not os.taskInfo(v) then
+   dprint("Starting service "..k)
+   pids[k] = os.spawnfile("/boot/service/"..k)
+  end
+ end
  coroutine.yield()
 end
-end,function(e) dprint(e) end,"init")

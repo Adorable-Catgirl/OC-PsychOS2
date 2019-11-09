@@ -1,3 +1,1 @@
-minitel.lua
-tape-iofs.lua
-fsmanager.service
+getty.lua
