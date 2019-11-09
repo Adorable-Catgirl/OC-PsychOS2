@@ -1,4 +1,4 @@
-local gpus,screens,ttyn = {}, {}, 0
+local gpus,screens,ttyn,pids = {}, {}, 0, {}
 local function scan()
  local w,di = pcall(computer.getDeviceInfo)
  if w then
@@ -29,6 +29,14 @@ local function nextScreen(n)
  end
  return rt[n] or rt[8000] or rt[2000] or rt[600]
 end
+
+local function spawnShell(fin,fout)
+ io.input(fin)
+ io.output(fout)
+ print(_OSVERSION.." - "..tostring(math.floor(computer.totalMemory()/1024)).."K RAM")
+ return os.spawnfile("/boot/exec/shell.lua")
+end
+
 local function allocate()
  for k,v in pairs(gpus) do
   dprint(k)
@@ -38,13 +46,22 @@ local function allocate()
    devfs.register("tty"..tostring(ttyn), function() return r,w,function() end end)
    gpus[k][1] = true
    screens[sA][1] = true
+   pids["tty"..tostring(ttyn)] = {-1}
    ttyn = ttyn + 1
   end
  end
 end
+
 scan()
 allocate()
 dprint("screens ready")
 while true do
  coroutine.yield()
+ for k,v in pairs(pids) do
+  if not os.taskInfo(v[1]) then
+   dprint("Spawning new shell for "..k)
+   pids[k][1] = spawnShell(v[2] or "/dev/"..k, v[3] or "/dev/"..k)
+   pids[k][2], pids[k][3] = pids[k][2] or io.input(), pids[k][3] or io.output()
+  end
+ end
 end
