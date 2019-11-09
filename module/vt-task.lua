@@ -31,8 +31,7 @@ function vtemu(gpua,scra) -- creates a process to handle the GPU and screen addr
    coroutine.yield()
   end
   local n = buf:find("\n")
-  r, buf = buf:sub(1,n), buf:sub(n+1)
-  dprint("bread",r)
+  r, buf = buf:sub(1,n-1), buf:sub(n+1)
   return r
  end
  return bread, write, function() io.write("\27[2J\27[H") end
