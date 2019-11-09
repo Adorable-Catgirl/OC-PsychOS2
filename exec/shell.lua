@@ -4,6 +4,7 @@ function shenv.quit()
  os.setenv("run",nil)
 end
 shenv.cd = os.chdir
+shenv.mkdir = fs.makeDirectory
 setmetatable(shenv,{__index=function(_,k)
  if _G[k] then
   return _G[k]
