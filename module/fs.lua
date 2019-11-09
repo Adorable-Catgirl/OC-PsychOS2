@@ -15,11 +15,8 @@ function fs.resolve(path) -- resolves *path* to a specific filesystem mount and 
  if path:sub(1,1) ~= "/" then path=(os.getenv("PWD") or "").."/"..path end
  local segments, rpath, rfs= fs.segments(path)
  local rc = #segments
- dprint(rc)
  for i = #segments, 1, -1 do
-  dprint("testing "..table.concat(segments, "/", 1, i),tostring(fsmounts[table.concat(segments, "/", 1, i)]))
   if fsmounts[table.concat(segments, "/", 1, i)] ~= nil then
-   dprint("ret",table.concat(segments, "/", 1, i), table.concat(segments, "/", i+1))
    return table.concat(segments, "/", 1, i), table.concat(segments, "/", i+1)
   end
  end
@@ -99,7 +96,7 @@ function fs.rename(from,to) -- moves file *from* to *to*
  return true
 end
 
-function fs.mount(path,proxy)
+function fs.mount(path,proxy) -- mounts the filesystem *proxy* to the mount point *path* if it is a directory. BYO proxy.
  if fs.isDirectory(path) then
   fsmounts[table.concat(fs.segments(path),"/")] = proxy
   return true
@@ -107,7 +104,7 @@ function fs.mount(path,proxy)
  return false, "path is not a directory"
 end
 
-function fs.mounts()
+function fs.mounts() -- returns a table containing the mount points of all mounted filesystems
  local rt = {}
  for k,v in pairs(fsmounts) do
   rt[#rt+1] = k,v.address or "unknown"
@@ -115,11 +112,11 @@ function fs.mounts()
  return rt
 end
 
-function fs.address(path)
+function fs.address(path) -- returns the address of the filesystem at a given path, if applicable
  local fsi,_ = fs.resolve(path)
  return fsmounts[fsi].address
 end
-function fs.type(path)
+function fs.type(path) -- returns the component type of the filesystem at a given path, if applicable
  local fsi,_ = fs.resolve(path)
  return fsmounts[fsi].type
 end
