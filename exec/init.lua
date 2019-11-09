@@ -9,7 +9,6 @@ local function loadlist()
  local f = io.open("/boot/cfg/init.txt","rb")
  if not f then return false end
  for line in f:read("*a"):gmatch("[^\r\n]+") do
-  dprint(line)
   pids[line] = -1
  end
  f:close()
@@ -18,7 +17,7 @@ loadlist()
 while true do
  for k,v in pairs(pids) do
   if not os.taskInfo(v) then
-   dprint("Starting service "..k)
+   syslog("Starting service "..k)
    pids[k] = os.spawnfile("/boot/service/"..k)
   end
  end
