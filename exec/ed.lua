@@ -63,6 +63,7 @@ end
 function ct.append(np)
  ct.sp(np)
  p=p+1
+ if #ft < 1 then p = 1 end
  ct.insert()
 end
 function ct.delete(np,n)
