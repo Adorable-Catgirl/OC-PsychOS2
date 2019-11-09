@@ -30,6 +30,7 @@ function os.tasks()
  return rt
 end
 function os.taskInfo(pid)
+ if not tTasks[pid] then return false end
  return {name=tTasks[pid].n,parent=tTasks[pid].P}
 end
 function os.sched() -- the actual scheduler function
