@@ -13,7 +13,7 @@ local function wrapUnits(n)
   if not scale[count] then return "inf" end
   n = n / 1024
  end
- return tostring(n)..(scale[count] or "")
+ return tostring(math.floor(n))..(scale[count] or "")
 end
 local fstr = "%-"..tostring(ml).."s %5s %5s"
 print("fs"..(" "):rep(ml-2).."  size  used")
