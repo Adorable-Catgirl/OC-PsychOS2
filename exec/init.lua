@@ -1,4 +1,4 @@
-if os.taskInfo(1) then
+if os.taskInfo(1) and os.pid() ~= 1 then
  return false, "init already started"
 end
 os.setenv("PWD","/boot")
