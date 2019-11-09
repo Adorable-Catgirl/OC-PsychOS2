@@ -23,16 +23,13 @@ function event.pull(t,...) -- return an event, optionally with timeout *t* and f
 end
 
 function event.listen(e,f) -- run function *f* for every occurance of event *e*
- local op = os.getenv("parent")
- os.setenv("parent",cPid)
  os.spawn(function() while true do
   local tEv = {coroutine.yield()}
   if tEv[1] == e then
    f(table.unpack(tEv))
   end
-  if not tTasks[os.getenv("parent")] or (tEv[1] == "unlisten" and tEv[2] == e and tEv[3] == tostring(f)) then break end
- end end,string.format("[%d] %s listener",cPid,e))
- os.setenv("parent",op)
+  if not os.taskInfo(os.taskInfo().parent) or (tEv[1] == "unlisten" and tEv[2] == e and tEv[3] == tostring(f)) then break end
+ end end,string.format("[%d] %s listener",os.pid(),e))
 end
 
 function event.ignore(e,f) -- stop function *f* running for every occurance of event *e*
