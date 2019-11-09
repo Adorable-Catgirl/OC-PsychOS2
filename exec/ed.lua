@@ -107,8 +107,8 @@ ct.a = ct.append
 ct.s = ct.substitute
 ct.d = ct.delete
 ct.f = ct.filename
-ct.P = ct.pasteprevious
-ct.p = ct.paste
+ct.PP = ct.pasteprevious
+ct.P = ct.paste
 
 ct.readfile(fp)
 
