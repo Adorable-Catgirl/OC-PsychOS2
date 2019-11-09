@@ -97,11 +97,15 @@ function fs.rename(from,to) -- moves file *from* to *to*
 end
 
 function fs.mount(path,proxy) -- mounts the filesystem *proxy* to the mount point *path* if it is a directory. BYO proxy.
- if fs.isDirectory(path) then
+ if fs.isDirectory(path) and not fsmounts[table.concat(fs.segments(path),"/")] then
   fsmounts[table.concat(fs.segments(path),"/")] = proxy
   return true
  end
  return false, "path is not a directory"
+end
+function fs.umount(path)
+ local fsi,_ = fs.resolve(path)
+ fsmounts[fsi] = nil
 end
 
 function fs.mounts() -- returns a table containing the mount points of all mounted filesystems
@@ -126,10 +130,6 @@ fs.makeDirectory("temp")
 if computer.getBootAddress then
  fs.makeDirectory("boot")
  fs.mount("boot",component.proxy(computer.getBootAddress()))
-end
-for addr, _ in component.list("filesystem") do
- fs.makeDirectory(addr:sub(1,3))
- fs.mount(addr:sub(1,3),component.proxy(addr))
 end
 
 end
