@@ -4,6 +4,14 @@ end
 os.setenv("PWD","/boot")
 io.input("/dev/null")
 io.output("/dev/syslog")
+local f = io.open("/boot/cfg/hostname","rb")
+local hostname = computer.address():sub(1,8)
+if f then
+ hostname = f:read("*l")
+ f:close()
+end
+os.setenv("HOSTNAME",hostname)
+syslog(string.format("Hostname set to %s",hostname))
 local pids = {}
 local function loadlist()
  local f = io.open("/boot/cfg/init.txt","rb")
