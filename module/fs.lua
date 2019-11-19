@@ -42,6 +42,16 @@ local function fread(self,length)
    rstr = rstr .. lstr
   until rstr:len() == length or lstr == ""
   return rstr
+ elseif type(length) == "string" then
+  local buf = ""
+  if length == "*l" then
+   length = "\n"
+  end
+  repeat
+   local rb = fsmounts[self.fs].read(self.fid,1) or ""
+   buf = buf .. rb
+  until buf:match(length) or rb == ""
+  return buf:match("(.*)"..length)
  end
  return fsmounts[self.fs].read(self.fid,length)
 end
