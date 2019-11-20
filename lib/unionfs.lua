@@ -19,6 +19,10 @@ function unionfs.create(...)
   end
   return paths[1].."/"..path
  end
+
+ function proxy.setLabel()
+  return false
+ end
  
  function proxy.spaceUsed()
   return fs.spaceUsed(paths[1])
@@ -34,6 +38,9 @@ function unionfs.create(...)
  end
  function proxy.lastModified(path)
   return fs.lastModified(realpath(path))
+ end
+ function proxy.getLabel()
+  return fs.getLabel(paths[1])
  end
 
  function proxy.exists(path)
@@ -91,7 +98,9 @@ function unionfs.create(...)
   if not fids[fid] then
    return false, "file not open"
   end
-  return fids[fid]:read(d)
+  local rb = fids[fid]:read(d)
+  if rb == "" then rb = nil end
+  return rb
  end
  function proxy.seek(fid,d)
   if not fids[fid] then
