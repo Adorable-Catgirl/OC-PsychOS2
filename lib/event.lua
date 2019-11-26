@@ -13,8 +13,12 @@ function event.pull(t,...) -- return an event, optionally with timeout *t* and f
   tEv = {coroutine.yield()}
   local ret = true
   for i = 1, #tA do
-   if not (tEv[i] or ""):match(tA[i]) then
-    ret = false
+   if type(tEv[i]) == "string" and type(tA[i]) == "string" then
+    if not (tEv[i] or ""):match(tA[i]) then
+     ret = false
+    end
+   else
+    ret = tEv[i] == tA[i]
    end
   end
   if ret then return table.unpack(tEv) end
