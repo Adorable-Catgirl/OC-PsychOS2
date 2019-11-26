@@ -1,3 +1,4 @@
+local serial = require "serialization"
 print(pcall(function()
 local shenv = {}
 function shenv.quit()
@@ -49,7 +50,11 @@ while os.getenv("run") do
  tResult = {pcall(load(input,"shell","t",shenv))}
  if tResult[1] == true then table.remove(tResult,1) end
  for k,v in pairs(tResult) do
-  print(v)
+  if type(v) == "table" then
+   print(serial.serialize(v))
+  else
+   print(v)
+  end
  end
 end
 end))
