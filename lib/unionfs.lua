@@ -57,7 +57,6 @@ function unionfs.create(...)
   local nt,rt = {},{}
   if #fs.segments(path) < 1 then
    for k,v in pairs(paths) do
-    print(v.."/"..path)
     for l,m in ipairs(fs.list(v.."/"..path)) do
      nt[m] = true
     end
