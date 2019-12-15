@@ -6,9 +6,9 @@ A lightweight, multi-user operating system for OpenComputers
 
 ### The kernel
 
-The kernel can be built using luapreproc:
+The kernel can be built using the build script:
 
-    ./luapreproc.lua module/init.lua kernel.lua
+    ./build.sh
 
 ### The boot filesystem
 

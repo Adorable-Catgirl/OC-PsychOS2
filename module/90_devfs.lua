@@ -69,4 +69,9 @@ end
 fs.makeDirectory("/dev")
 fs.mount("/dev",devfs.component)
 
---#include "module/devfs/null.lua"
+@[[local fh = io.popen("ls module/devfs", "r")]]
+@[[for line in fh:lines() do]]
+  @[[if line:match("%d%d_.+") then]]
+--#include @[{"module/devfs/"..line}]
+  @[[end]]
+@[[end]]
