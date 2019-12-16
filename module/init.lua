@@ -1,4 +1,5 @@
-_OSVERSION="$[{PSYCHOS_VMAJ}].$[{PSYCHOS_VMIN}]-$[[git rev-parse --short HEAD]]"
+_OSVERSION="PsychOS $[{PSYCHOS_VMAJ}].$[{PSYCHOS_VMIN}]-$[[git rev-parse --short HEAD]]"
+_LCVERSION="LuaComp $[[luacomp --version]] (-m$[{LUACOMP_MINIFIER}])"
 @[[local fh = io.popen("ls module", "r")]]
 @[[for line in fh:lines() do]]
 	@[[if line:match("%d%d_.+") then]]

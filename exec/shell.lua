@@ -39,6 +39,7 @@ setmetatable(shenv,{__index=function(_,k)
   end
  end
 end})
+print("Built with ".._LCVERSION)
 print(_VERSION)
 os.setenv("run",true)
 while os.getenv("run") do
